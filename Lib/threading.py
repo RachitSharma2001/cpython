@@ -918,6 +918,15 @@ class Thread:
         # For debugging and _after_fork()
         _dangling.add(self)
 
+    def yield_to_next_thread(self):
+        if len(_active) == 1:
+            return
+        else:
+            import sys
+            import time
+            time_per_thread = sys.getswitchinterval()
+            time.sleep(min(0.001, time_per_thread / 2))
+
     def _reset_internal_locks(self, is_alive):
         # private!  Called by _after_fork() to reset our internal locks as
         # they may be in an invalid state leading to a deadlock or crash.
@@ -1459,6 +1468,9 @@ class _DummyThread(Thread):
 
 
 # Global API functions
+
+# def yieldThread():
+#     return
 
 def current_thread():
     """Return the current Thread object, corresponding to the caller's thread of control.

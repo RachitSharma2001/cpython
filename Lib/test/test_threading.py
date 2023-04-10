@@ -51,6 +51,8 @@ class Counter(object):
     def get(self):
         return self.value
 
+#class TestThreadYield(threading.Thread):
+    
 class TestThread(threading.Thread):
     def __init__(self, name, testcase, sema, mutex, nrunning):
         threading.Thread.__init__(self, name=name)
@@ -252,6 +254,25 @@ class ThreadTests(BaseTestCase):
         self.assertTrue(threading._active[tid].is_alive())
         self.assertRegex(repr(threading._active[tid]), '_DummyThread')
         del threading._active[tid]
+
+    def test_thread_yield_valid(self):
+        import io
+        def f1():
+            curr_thread = threading.current_thread()
+            curr_thread.yield_to_next_thread()
+            print("f1", end="")
+        def f2():
+            print("f2", end="")
+        stdout = io.StringIO()
+        sys.stdout = stdout
+        thread1 = threading.Thread(target=f1)
+        thread2 = threading.Thread(target=f2)
+        thread1.start()
+        thread2.start()
+        thread1.join()
+        thread2.join()
+        sys.stdout = sys.__stdout__
+        self.assertEqual(stdout.getvalue(), "f2f1")
 
     # PyThreadState_SetAsyncExc() is a CPython-only gimmick, not (currently)
     # exposed at the Python level.  This test relies on ctypes to get at it.
